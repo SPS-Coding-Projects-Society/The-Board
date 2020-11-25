@@ -30,7 +30,8 @@ class Item1 extends StatelessWidget {
           Text(
             "Data",
             style: TextStyle(
-              color: Colors.redAccent,
+              color: Colors.white
+              ,
               fontSize: 17.0,
               fontWeight: FontWeight.w600
             )
@@ -48,9 +49,6 @@ class StreamPage extends StatelessWidget {
   List getCardList()
   {
     List myCardList = [Item1()];
-
-    
-
     return myCardList;
   }
 
