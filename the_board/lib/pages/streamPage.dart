@@ -1,10 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 
-class Item1 extends StatelessWidget {
-  const Item1({Key key}) : super(key: key);
+
+class MyMessage extends StatelessWidget {
+  MyMessage(this.heading, this.messageBody);
+  final String heading, messageBody;
+@override
+  Widget build(BuildContext context){
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          stops: [0.3, 1],
+          colors: [Color(0xffffffff),Color(0xffffffff),]
+        ),
+      ),
+      padding: const EdgeInsets.all(12.0),
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(heading, textScaleFactor: 1.5, textAlign: TextAlign.left),
+          Text(messageBody, textAlign: TextAlign.left)
+        ],
+      )
+      );
+  }
+}
+
+class MyItem extends StatelessWidget {
+  // const MyItem(;
+  MyItem(this.fileName);
+  final String fileName;
 @override
   Widget build(BuildContext context) {
     return Container(
@@ -13,43 +44,66 @@ class Item1 extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           stops: [0.3, 1],
-          colors: [Color(0xffff4000),Color(0xffffcc66),]
+          colors: [Color(0xffffffff),Color(0xffffffff),]
         ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text(
-            "Data",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22.0,
-              fontWeight: FontWeight.bold
-            )
-          ),
-          Text(
-            "Data",
-            style: TextStyle(
-              color: Colors.white
-              ,
-              fontSize: 17.0,
-              fontWeight: FontWeight.w600
-            )
-          ),
+          Image(image: AssetImage('assets/images/'+fileName))
         ],
       ),
     );
   }
 }
 
-class StreamPage extends StatelessWidget {
+
+class StreamPage extends StatefulWidget{
   @override
+  State<StatefulWidget> createState(){
+    return StreamPageState();
+  }
+  
+  static Future<String> loadAsset() async
+  {
+    String result = await rootBundle.loadString('assets/text/notices.txt');
+    return result;
+  }
+
+  
+  
+}
+
+
+
+class StreamPageState extends State<StreamPage>  {
+  @override
+  
   
 
   List getCardList()
   {
-    List myCardList = [Item1()];
+    int cardCount = 1;
+    List myCardList = [MyItem('sps.jpg'),MyItem('sps2.jpg')];
     return myCardList;
+  }
+
+  Future<List> getMessageList() async
+  {
+    
+    String data = await StreamPage.loadAsset();
+
+    int lineCount = 30;
+    List myMessageList = [];
+    for(int i = 0; i < lineCount;i+=2)
+    {
+      myMessageList.add(MyMessage("a","b"));
+    }
+
+    myMessageList.add(MyMessage(data,'Come to ImpSoc!'));
+    myMessageList.add(MyMessage('Computing Projects Society', 'Come to Computing Projects Society!'));
+
+    return myMessageList;
   }
 
   List<T> map<T>(List list, Function handler) {
@@ -62,11 +116,13 @@ class StreamPage extends StatelessWidget {
 
   Widget build(BuildContext context) {
     List myCardList = getCardList();
+    Future<List> myMessageList = getMessageList();
+    // List myMessageList = [MyMessage('Impsoc','Come to ImpSoc!'),MyMessage('Computing Projects Society', 'Come to Computing Projects Society!')];
     return Scaffold(
       body: Column(
         children: <Widget>[
           CarouselSlider(options: CarouselOptions(
-                height: 200.0,
+                height: 300.0,
                 autoPlay: true,
                 autoPlayInterval: Duration(seconds: 3),
                 autoPlayAnimationDuration: Duration(milliseconds: 800),
@@ -94,20 +150,34 @@ class StreamPage extends StatelessWidget {
                 );
               }).toList(),
           ),
-          Row(
-      children: <Widget>[
-        Text("data")
-      ],
-    )
+          Expanded(child:
+          futureList(myMessageList)
+          )
         ],
-        
       ),
-
-
-
     );
   }
 
   
 
+}
+
+Widget futureList(myMessageList) {
+  return FutureBuilder(
+    builder: (context, projectSnap) {
+      if (projectSnap.connectionState == ConnectionState.none &&
+          projectSnap.hasData == null) {
+        //print('project snapshot data is: ${projectSnap.data}');
+        return Container();
+      }
+      return ListView.builder(
+        scrollDirection: Axis.vertical,
+        shrinkWrap: true,
+        // itemCount: myMessageList.length,
+        itemBuilder: (context, index){
+          return myMessageList[index];
+        }
+      );
+    }
+  );
 }
