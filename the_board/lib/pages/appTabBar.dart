@@ -21,7 +21,7 @@ class AppTabBar extends StatelessWidget {
             child: Text('Streams'),
           ),
           Tab(
-            child: Text('Acount'),
+            child: Text('Account'),
           ),
         ],
       ),
