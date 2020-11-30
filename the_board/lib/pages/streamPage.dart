@@ -6,15 +6,15 @@ import 'package:flutter/services.dart' show rootBundle;
 
 
 class MyMessage extends StatelessWidget {
-  MyMessage(this.heading, this.messageBody);
-  final String heading, messageBody;
+  MyMessage(this.heading, this.messageBody, this.time, this.user);
+  final String heading, messageBody, time, user;
 @override
   Widget build(BuildContext context){
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
           stops: [0.3, 1],
           colors: [Color(0xffffffff),Color(0xffffffff),]
         ),
@@ -25,7 +25,9 @@ class MyMessage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(heading, textScaleFactor: 1.5, textAlign: TextAlign.left),
-          Text(messageBody, textAlign: TextAlign.left)
+          Text(messageBody, textAlign: TextAlign.left),
+          Text("Uploaded at: "+time+"by "+user, textAlign:TextAlign.right)
+          
         ],
       )
       );
@@ -69,18 +71,12 @@ class StreamPage extends StatefulWidget{
     String result = await rootBundle.loadString('assets/text/notices.txt');
     return result;
   }
-
-  
-  
 }
 
 
 
 class StreamPageState extends State<StreamPage>  {
   @override
-  
-  
-
   List getCardList()
   {
     int cardCount = 1;
@@ -90,19 +86,15 @@ class StreamPageState extends State<StreamPage>  {
 
   Future<List> getMessageList() async
   {
-    
     String data = await StreamPage.loadAsset();
+    List<String> datalist = data.split("\n");
 
-    int lineCount = 30;
-    List myMessageList = [];
-    for(int i = 0; i < lineCount;i+=2)
-    {
-      myMessageList.add(MyMessage("a","b"));
+    int lineCount = datalist.length;
+    var myMessageList = [];
+    for(int i = 0; i < lineCount;i+=4){
+      myMessageList.add(MyMessage(datalist[i],datalist[i+1], datalist[i+2], datalist[i+3]));
     }
-
-    myMessageList.add(MyMessage(data,'Come to ImpSoc!'));
-    myMessageList.add(MyMessage('Computing Projects Society', 'Come to Computing Projects Society!'));
-
+    
     return myMessageList;
   }
 
@@ -123,6 +115,7 @@ class StreamPageState extends State<StreamPage>  {
         children: <Widget>[
           CarouselSlider(options: CarouselOptions(
                 height: 300.0,
+                
                 autoPlay: true,
                 autoPlayInterval: Duration(seconds: 3),
                 autoPlayAnimationDuration: Duration(milliseconds: 800),
@@ -152,32 +145,55 @@ class StreamPageState extends State<StreamPage>  {
           ),
           Expanded(child:
           futureList(myMessageList)
-          )
+          ),
+          
+
+
         ],
+
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+
+        },
+        child: Icon(Icons.add_rounded),
+        backgroundColor: Colors.blue,
+        ),
     );
   }
-
-  
-
 }
+
+
 
 Widget futureList(myMessageList) {
   return FutureBuilder(
+    future: myMessageList,
     builder: (context, projectSnap) {
-      if (projectSnap.connectionState == ConnectionState.none &&
-          projectSnap.hasData == null) {
-        //print('project snapshot data is: ${projectSnap.data}');
-        return Container();
-      }
-      return ListView.builder(
-        scrollDirection: Axis.vertical,
-        shrinkWrap: true,
-        // itemCount: myMessageList.length,
-        itemBuilder: (context, index){
-          return myMessageList[index];
-        }
-      );
+      if (projectSnap.connectionState == ConnectionState.waiting) {
+        return new Center(
+          child: new CircularProgressIndicator(),
+            );
+      } else if (projectSnap.hasError) {
+        return new Text('Error: ${projectSnap.error}');
+      } else {
+        final items = projectSnap.data;
+          return new Scrollbar(
+            child: new RefreshIndicator(
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  //Even if zero elements to update scroll
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    return items[index];
+                  },
+                  ),
+                  onRefresh: () {
+                    // implement later
+                    return;
+                  } // refreshList,
+              ),
+            );
+          }// else
     }
   );
 }
